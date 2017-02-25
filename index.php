@@ -13,12 +13,6 @@ class DB {
 	private $dataBase = DB_DATABASE;
 	private $bdd;
 
-	// private $host = '10.0.216.66';
-	// private $userName = 'qgandcom';
-	// private $password = '10Qgandcom';
-	// private $dataBase = 'site_qgandcom';
-	// private $bdd;
-
 	public function __construct($host = null, $userName = null, $password = null, $dataBase = null){
 		if ($host != null) {
 			$this->host = $host;
@@ -66,7 +60,59 @@ class DB {
 	}
 }
 
+class Upload {
+	private $name;
+	private $last_accessed;
+
+	public function getName() {
+		return $this->name;
+	}
+
+	public function getLastAccessed() {
+		return $this->last_accessed;
+	}
+
+	public function __construct($name = NULL, $last_accessed = NULL) {
+		 if(!is_null($name) && !is_null($last_accessed)) {
+			 $this->name = $name;
+			 $this->last_accessed = $last_accessed;
+		 }
+	}
+}
+
 $bdd = new DB();
+
+/*
+***** FUNCTIONS *****
+*/
+
+/*
+* Returns the location of the user on the website
+*/
+function getCurrentUri()
+{
+	$basepath = implode('/', array_slice(explode('/', $_SERVER['SCRIPT_NAME']), 0, -1)) . '/';
+	$uri = substr($_SERVER['REQUEST_URI'], strlen($basepath));
+	if (strstr($uri, '?')) $uri = substr($uri, 0, strpos($uri, '?'));
+	$uri = '/' . trim($uri, '/');
+	return $uri;
+}
+
+/*
+* Here we get the uri and transform it into an array for easier routing
+*/
+function uriToArray($base_url) {
+	$base_url = getCurrentUri();
+  $routes = array();
+  $routes = explode('/', $base_url);
+  $rout = array();
+	foreach($routes as $route)
+	{
+    if(trim($route) != '')
+			array_push($rout, $route);
+	}
+	return $rout;
+}
 
 /*
 * File upload
@@ -99,10 +145,8 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
         die("You must specify what type of files filtering you want");
     }
 
-		if($check !== false) {
-			$name = $file_name;
-		} else {
-      die("File type not allowed, sorry");
+		if($check == false) {
+			die("File type not allowed, sorry");
 		}
 
 		// Upload the file
@@ -113,7 +157,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 			$sql = "INSERT INTO uploads ( name, last_accessed ) VALUES ( :name, :upload_time )";
       $values = array(
-        "name" => $name,
+        "name" => $file_name,
         "upload_time" => $date
       );
       $bdd->queryEvent($sql, $values);
@@ -123,14 +167,64 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
   }
 } else {
   if($_SERVER['REQUEST_METHOD'] == 'GET') {
-    ?>
-    <body>
-      <form method="post" action="" name="upload_file" id="upload_file" enctype="multipart/form-data">
-        <input type="file" id="file" name="file">
-        <input type="submit" name="submit" value="Upload">
-      </form>
-    </body>
-    <?php
+		// We get the location of the user
+		$url = getCurrentUri();
+		$route = uriToArray($url);
+		// '/'
+		switch(count($route)) {
+			case 0:
+		    ?>
+		    <body>
+		      <form method="post" action="" name="upload_file" id="upload_file" enctype="multipart/form-data">
+		        <input type="file" id="file" name="file">
+		        <input type="submit" name="submit" value="Upload">
+		      </form>
+		    </body>
+		    <?php
+				break;
+			// '/*'
+			case 1:
+				// '/index.php'
+				if($route[0] == 'index.php') {
+					?>
+					<body>
+			      <form method="post" action="" name="upload_file" id="upload_file" enctype="multipart/form-data">
+			        <input type="file" id="file" name="file">
+			        <input type="submit" name="submit" value="Upload">
+			      </form>
+			    </body>
+					<?php
+				} else {
+					$file_url = UPLOAD_DIR.$route[0];
+					$sql = "SELECT * FROM uploads WHERE name = :name";
+					$values = array( "name" => $route[0]);
+					$file = $bdd->queryClass($sql, $values, 'Upload');
+					if($file == false) {
+						die('No such file');
+					}
+					$date = new DateTime(null, new DateTimeZone('Europe/London'));
+		      $date = $date->format('Y-m-d H:i:s');
+
+					$sql = "UPDATE uploads SET last_accessed = :currentdate WHERE name = :filename";
+					$values = array(
+						"filename" => $file->getName(),
+						"currentdate" => $date
+					);
+					$bdd->queryEvent($sql, $values);
+
+					$ext = pathinfo($file_url, PATHINFO_EXTENSION);
+					$content_type = mime_content_type($file_url);
+					header("Content-Type: ".$content_type);
+          header("Content-Transfer-Encoding: Binary");
+          header("Content-Length:".filesize($file_url));
+          header("Content-Disposition: inline; filename=".$route[0]);
+          readfile($file_url);
+
+				}
+				break;
+			default:
+				die('File not found');
+			}
+		}
   }
-}
 ?>
