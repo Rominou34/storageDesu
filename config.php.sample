@@ -5,6 +5,7 @@ define("DB_USER", '');
 define("DB_PASSWORD", '');
 define("DB_DATABASE", '');
 
+define('WEBSITE_URL', 'http://localhost/storageDesu/');
 define("UPLOAD_DIR", 'files/');
 define("FILTER_FILES", 'ban'); // Either 'all', 'allow' or 'ban'
 define("ALLOWED_EXTENSIONS", serialize(array('jpg', 'jpeg', 'png', 'gif', 'pdf', 'svg', 'txt'))); // Extensions allowed if filter is 'allow'

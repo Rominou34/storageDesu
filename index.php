@@ -1,64 +1,7 @@
 <?php
 
 require('config.php');
-
-/*
-* DATABASE INITIALISATION
-*/
-class DB {
-
-	private $host = DB_HOST;
-	private $userName = DB_USER;
-	private $password = DB_PASSWORD;
-	private $dataBase = DB_DATABASE;
-	private $bdd;
-
-	public function __construct($host = null, $userName = null, $password = null, $dataBase = null){
-		if ($host != null) {
-			$this->host = $host;
-			$this->userName = $userName;
-			$this->password = $password;
-			$this->dataBase = $dataBase;
-		}
-
-		try {
-			$this->bdd = new PDO('mysql:host='.$this->host.';dbname='.$this->dataBase, $this->userName, $this->password, array(PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES UTF8', PDO::ATTR_ERRMODE => PDO::ERRMODE_WARNING));
-		} catch(PDOException $e){
-			die('<h1><center>Unable to connect to the database</center></h1>');
-		}
-	}
-
-	public function query($sql, $data = array()){
-		$req = $this->bdd->prepare($sql);
-		$req->execute($data);
-		return $req->fetchAll(PDO::FETCH_OBJ);
-	}
-
-	public function queryOne($sql, $data = array()){
-		$req = $this->bdd->prepare($sql);
-		$req->execute($data);
-		return $req->fetch(PDO::FETCH_OBJ);
-	}
-
-	public function queryCount($sql, $data = array()){
-		$req=$this->bdd->prepare($sql);
-		$req->execute($data);
-		return $count = $req->rowCount();
-	}
-
-	public function queryEvent($sql, $data = array()){
-		$req = $this->bdd->prepare($sql);
-		$req->execute($data);
-		return $req;
-	}
-
-	public function queryClass($sql, $data = array(), $class){
-		$req = $this->bdd->prepare($sql);
-		$req->execute($data);
-		$req->setFetchMode(PDO::FETCH_CLASS, $class);
-		return $req->fetch();
-	}
-}
+require('db.php');
 
 class Upload {
 	private $name;
@@ -118,6 +61,7 @@ function uriToArray($base_url) {
 * File upload
 */
 if($_SERVER['REQUEST_METHOD'] == 'POST') {
+	include('head.php');
 	// We check that a file was sent
 	if(!empty($_FILES['file']['name'])) {
 			 // Verifie si l'image est valide
@@ -142,7 +86,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
         $check = true;
         break;
       default:
-        die("You must specify what type of files filtering you want");
+        die("If you're the administrator of the website, you must specify what type of files filtering you want");
     }
 
 		if($check == false) {
@@ -160,9 +104,16 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
         "name" => $file_name,
         "upload_time" => $date
       );
-      $bdd->queryEvent($sql, $values);
+      $req = $bdd->queryEvent($sql, $values);
+			if($req) {
+				$file_url = WEBSITE_URL.$file_name;
+				?>
+				<h2>File uploaded</h2>
+				<a href="<?php echo($file_url)?>"><?php echo($file_url)?></a>
+				<?php
+			}
 		} else {
-				// ERROR
+				die("An error occured during the upload of the file");
 		}
   }
 } else {
@@ -173,27 +124,15 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
 		// '/'
 		switch(count($route)) {
 			case 0:
-		    ?>
-		    <body>
-		      <form method="post" action="" name="upload_file" id="upload_file" enctype="multipart/form-data">
-		        <input type="file" id="file" name="file">
-		        <input type="submit" name="submit" value="Upload">
-		      </form>
-		    </body>
-		    <?php
+				include('head.php');
+		    include('form.html');
 				break;
 			// '/*'
 			case 1:
 				// '/index.php'
 				if($route[0] == 'index.php') {
-					?>
-					<body>
-			      <form method="post" action="" name="upload_file" id="upload_file" enctype="multipart/form-data">
-			        <input type="file" id="file" name="file">
-			        <input type="submit" name="submit" value="Upload">
-			      </form>
-			    </body>
-					<?php
+					include('head.php');
+					include('form.html');
 				} else {
 					$file_url = UPLOAD_DIR.$route[0];
 					$sql = "SELECT * FROM uploads WHERE name = :name";
@@ -212,14 +151,17 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
 					);
 					$bdd->queryEvent($sql, $values);
 
-					$ext = pathinfo($file_url, PATHINFO_EXTENSION);
 					$content_type = mime_content_type($file_url);
+					header($_SERVER["SERVER_PROTOCOL"] . " 200 OK");
+					header('Cache-Control: must-revalidate');
 					header("Content-Type: ".$content_type);
           header("Content-Transfer-Encoding: Binary");
           header("Content-Length:".filesize($file_url));
-          header("Content-Disposition: inline; filename=".$route[0]);
+          header("Content-Disposition: inline; filename=".basename($file_url));
+					header("Test-header: ".$file_url);
+					header("Test-bis: ".file_exists($file_url));
           readfile($file_url);
-
+					die();
 				}
 				break;
 			default:
@@ -228,3 +170,13 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
 		}
   }
 ?>
+	<script>
+	  document.getElementById("file").onchange = function() {
+		  document.getElementById("uploadText").innerHTML = "Uploading...";
+	    var button = document.getElementById("upload-button");
+	    button.className = " loading";
+	    document.getElementById("form").submit();
+	  };
+	</script>
+	</body>
+</html>
