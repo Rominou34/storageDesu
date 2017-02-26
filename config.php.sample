@@ -10,5 +10,7 @@ define("UPLOAD_DIR", 'files/');
 define("FILTER_FILES", 'ban'); // Either 'all', 'allow' or 'ban'
 define("ALLOWED_EXTENSIONS", serialize(array('jpg', 'jpeg', 'png', 'gif', 'pdf', 'svg', 'txt'))); // Extensions allowed if filter is 'allow'
 define("BANNED_EXTENSIONS", serialize(array('exe', 'html', 'js', 'php', 'msi', 'xhtml'))); // Extensions banned if filter is 'ban'
+define("MAX_UPLOAD_SIZE", 128); // In MB
+define("GENERATE_RANDOM_NAME", TRUE); // If you want to generate random names for the files
 
 ?>

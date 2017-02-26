@@ -58,17 +58,48 @@ function uriToArray($base_url) {
 }
 
 /*
+* Cleans the string so we don't have problems with the database or the URLs
+*/
+function clean($string) {
+   $string = str_replace(' ', '_', $string); // Replaces all spaces with hyphens.
+   return preg_replace('/[^A-Za-z0-9\-]/', '', $string); // Removes special chars.
+}
+
+/*
+* Generates a random name for the file
+*/
+function randomName() {
+	$characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  $charactersLength = strlen($characters);
+  $randomString = '';
+  for ($i = 0; $i < 8; $i++) {
+      $randomString .= $characters[rand(0, $charactersLength - 1)];
+  }
+  return $randomString;
+}
+
+/*
 * File upload
 */
 if($_SERVER['REQUEST_METHOD'] == 'POST') {
 	include('head.php');
 	// We check that a file was sent
 	if(!empty($_FILES['file']['name'])) {
-			 // Verifie si l'image est valide
+		if($_FILES['file']['size'] > 1000000*MAX_UPLOAD_SIZE) {
+			die('Maximul file size is '.MAX_UPLOAD_SIZE.' MB');
+		}
+		// We clean the name of the file
 		$target_dir = UPLOAD_DIR;
-		$target_file = $target_dir . basename($_FILES["file"]["name"]);
-		$file_name = basename($_FILES["file"]["name"]);
-		$ext = pathinfo($target_file,PATHINFO_EXTENSION);
+		$ext = pathinfo(basename($_FILES["file"]["name"]),PATHINFO_EXTENSION);
+		// IF we want a random name we generate it, else we clean the original name of the file
+		if(GENERATE_RANDOM_NAME) {
+			$file_name = randomName();
+		} else {
+			$file_name = clean(basename($_FILES["file"]["name"], ".".$ext));
+		}
+		$file_upload_name = $file_name.".".$ext;
+		$target_file = $target_dir.$file_name.".".$ext;
+
     $check = false;
     switch(FILTER_FILES) {
       case 'allow':
@@ -101,12 +132,12 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 			$sql = "INSERT INTO uploads ( name, last_accessed ) VALUES ( :name, :upload_time )";
       $values = array(
-        "name" => $file_name,
+        "name" => $file_upload_name,
         "upload_time" => $date
       );
       $req = $bdd->queryEvent($sql, $values);
 			if($req) {
-				$file_url = WEBSITE_URL.$file_name;
+				$file_url = WEBSITE_URL.$file_upload_name;
 				?>
 				<h2>File uploaded</h2>
 				<a href="<?php echo($file_url)?>"><?php echo($file_url)?></a>
@@ -124,15 +155,13 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
 		// '/'
 		switch(count($route)) {
 			case 0:
-				include('head.php');
-		    include('form.html');
+				include('main.php');
 				break;
 			// '/*'
 			case 1:
 				// '/index.php'
 				if($route[0] == 'index.php') {
-					include('head.php');
-					include('form.html');
+					include('main.php');
 				} else {
 					$file_url = UPLOAD_DIR.$route[0];
 					$sql = "SELECT * FROM uploads WHERE name = :name";
@@ -170,13 +199,3 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
 		}
   }
 ?>
-	<script>
-	  document.getElementById("file").onchange = function() {
-		  document.getElementById("uploadText").innerHTML = "Uploading...";
-	    var button = document.getElementById("upload-button");
-	    button.className = " loading";
-	    document.getElementById("form").submit();
-	  };
-	</script>
-	</body>
-</html>
