@@ -29,6 +29,7 @@ body {
   max-width: 800px;
   margin: auto;
   padding: 1em;
+  padding-top: calc(50vh - 300px);
 }
 
 h1 {
@@ -51,6 +52,7 @@ nav {
   display: flex;
   justify-content: space-around;
   align-items: center;
+  margin: 1em 0;
 }
 
 nav a {
@@ -95,7 +97,8 @@ input[type="file"]:hover {
 
 #upload-button {
   position: relative;
-  width: 400px;
+  width: 100%;
+  max-width: 400px;
   display: block;
   margin: auto;
   height: 80px;

@@ -47,10 +47,13 @@ In order to let users upload their files, change the permissions of the folder w
 chmod 777 files
 ```
 
-#### 5. Make sur to enable Apache rewrite
+#### 5. Make sure everything is good with Apache
 
-When I installed it on my server it didn't work because Apache didn't have rewrite enabled so make sur to enable the module and enable it in your VirtualHost
+* Make sure rewrite is enabled or else the URLs for the files won't work
+    * When I installed it on my server it didn't work because Apache didn't have rewrite enabled so make sure to enable the module and enable it in your VirtualHost.
+* Make sure your server accepts big files
+  * Make sure php.ini allows 128MB files ( if you keep the default config ), both in upload and in post
 
-#### 5. Enjoy
+#### 6. Enjoy
 
 It currently works on my server but if something were to break on yours, please open an issue and I'll try to fix that

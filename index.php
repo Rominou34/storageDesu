@@ -82,11 +82,10 @@ function randomName() {
 * File upload
 */
 if($_SERVER['REQUEST_METHOD'] == 'POST') {
-	include('head.php');
 	// We check that a file was sent
 	if(!empty($_FILES['file']['name'])) {
-		if($_FILES['file']['size'] > 1000000*MAX_UPLOAD_SIZE) {
-			die('Maximul file size is '.MAX_UPLOAD_SIZE.' MB');
+		if($_FILES['file']['size'] > (1000000*MAX_UPLOAD_SIZE)) {
+			die('Maximum file size allowed is '.MAX_UPLOAD_SIZE.' MB');
 		}
 		// We clean the name of the file
 		$target_dir = UPLOAD_DIR;
