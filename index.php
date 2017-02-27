@@ -139,8 +139,26 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
 			if($req) {
 				$file_url = WEBSITE_URL.$file_upload_name;
 				?>
-				<h2>File uploaded</h2>
-				<a href="<?php echo($file_url)?>"><?php echo($file_url)?></a>
+				<!DOCTYPE html>
+				<html>
+				  <head>
+				    <title>File uploaded !</title>
+				    <meta charset="UTF-8">
+				    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+				    <link rel="stylesheet" type="text/css" href="style.css">
+						<script async="" src="https://www.google-analytics.com/analytics.js"></script>
+				    <!-- DELETE THIS ANALYTIC LINK BEFORE USING IT ON YOUR WEBSITE !-->
+				    <link href="https://fonts.googleapis.com/css?family=Ubuntu" rel="stylesheet">
+				    <!-- !-->
+					</head>
+					<body>
+						<a href="<?php echo(WEBSITE_URL)?>">
+				      <h1>storage<i>~Desu~</i></h1>
+				    </a>
+						<h2>File uploaded</h2>
+						<a href="<?php echo($file_url)?>"><?php echo($file_url)?></a>
+					</body>
+				</html>
 				<?php
 			}
 		} else {
@@ -155,42 +173,50 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
 		// '/'
 		switch(count($route)) {
 			case 0:
-				include('main.php');
+				include('pages/main.php');
 				break;
 			// '/*'
 			case 1:
 				// '/index.php'
-				if($route[0] == 'index.php') {
-					include('main.php');
-				} else {
-					$file_url = UPLOAD_DIR.$route[0];
-					$sql = "SELECT * FROM uploads WHERE name = :name";
-					$values = array( "name" => $route[0]);
-					$file = $bdd->queryClass($sql, $values, 'Upload');
-					if($file == false) {
-						die('No such file');
-					}
-					$date = new DateTime(null, new DateTimeZone('Europe/London'));
-		      $date = $date->format('Y-m-d H:i:s');
+				switch($route[0]) {
+					case 'index.php':
+						include('pages/main.php');
+						break;
+					case 'about':
+						include('pages/about.php');
+						break;
+					case 'privacy':
+						include('pages/privacy.php');
+						break;
+					default:
+						$file_url = UPLOAD_DIR.$route[0];
+						$sql = "SELECT * FROM uploads WHERE name = :name";
+						$values = array( "name" => $route[0]);
+						$file = $bdd->queryClass($sql, $values, 'Upload');
+						if($file == false) {
+							die('No such file');
+						}
+						$date = new DateTime(null, new DateTimeZone('Europe/London'));
+			      $date = $date->format('Y-m-d H:i:s');
 
-					$sql = "UPDATE uploads SET last_accessed = :currentdate WHERE name = :filename";
-					$values = array(
-						"filename" => $file->getName(),
-						"currentdate" => $date
-					);
-					$bdd->queryEvent($sql, $values);
+						$sql = "UPDATE uploads SET last_accessed = :currentdate WHERE name = :filename";
+						$values = array(
+							"filename" => $file->getName(),
+							"currentdate" => $date
+						);
+						$bdd->queryEvent($sql, $values);
 
-					$content_type = mime_content_type($file_url);
-					header($_SERVER["SERVER_PROTOCOL"] . " 200 OK");
-					header('Cache-Control: must-revalidate');
-					header("Content-Type: ".$content_type);
-          header("Content-Transfer-Encoding: Binary");
-          header("Content-Length:".filesize($file_url));
-          header("Content-Disposition: inline; filename=".basename($file_url));
-					header("Test-header: ".$file_url);
-					header("Test-bis: ".file_exists($file_url));
-          readfile($file_url);
-					die();
+						$content_type = mime_content_type($file_url);
+						header($_SERVER["SERVER_PROTOCOL"] . " 200 OK");
+						header('Cache-Control: must-revalidate');
+						header("Content-Type: ".$content_type);
+	          header("Content-Transfer-Encoding: Binary");
+	          header("Content-Length:".filesize($file_url));
+	          header("Content-Disposition: inline; filename=".basename($file_url));
+						header("Test-header: ".$file_url);
+						header("Test-bis: ".file_exists($file_url));
+	          readfile($file_url);
+						die();
 				}
 				break;
 			default:

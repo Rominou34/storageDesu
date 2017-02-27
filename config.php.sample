@@ -5,8 +5,12 @@ define("DB_USER", '');
 define("DB_PASSWORD", '');
 define("DB_DATABASE", '');
 
+/*
+* The url where Desu will be run, so if your site is website.com but you run desu on website.com/desu,
+* put website.com/desu/ and don't forget the '/' at the end
+*/
 define('WEBSITE_URL', 'http://localhost/storageDesu/');
-define("UPLOAD_DIR", 'files/');
+define("UPLOAD_DIR", 'files/'); The directory inside website.com/desu where files will be uploaded
 define("FILTER_FILES", 'ban'); // Either 'all', 'allow' or 'ban'
 define("ALLOWED_EXTENSIONS", serialize(array('jpg', 'jpeg', 'png', 'gif', 'pdf', 'svg', 'txt'))); // Extensions allowed if filter is 'allow'
 define("BANNED_EXTENSIONS", serialize(array('exe', 'html', 'js', 'php', 'msi', 'xhtml'))); // Extensions banned if filter is 'ban'

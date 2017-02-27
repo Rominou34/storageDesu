@@ -34,12 +34,22 @@ Crate a file named `config.php` based on the template of `config.php.sample`
 
 Change the values according to your case and how you want the website to work
 
-#### 4. Change folder permissions
+#### 4. Create the files folder
+
+Create a folder with whatever name you want ( default name is `files/` so change the config if you put a different one ):
+
+```shell
+mkdir files
+```
 
 In order to let users upload their files, change the permissions of the folder where the files will be uploaded:
 ```shell
 chmod 777 files
 ```
+
+#### 5. Make sur to enable Apache rewrite
+
+When I installed it on my server it didn't work because Apache didn't have rewrite enabled so make sur to enable the module and enable it in your VirtualHost
 
 #### 5. Enjoy
 
