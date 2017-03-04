@@ -10,7 +10,7 @@ define("DB_DATABASE", '');
 * put website.com/desu/ and don't forget the '/' at the end
 */
 define('WEBSITE_URL', 'http://localhost/storageDesu/');
-define("UPLOAD_DIR", 'files/'); The directory inside website.com/desu where files will be uploaded
+define("UPLOAD_DIR", 'files/'); //The directory inside website.com/desu where files will be uploaded
 define("FILTER_FILES", 'ban'); // Either 'all', 'allow' or 'ban'
 define("ALLOWED_EXTENSIONS", serialize(array('jpg', 'jpeg', 'png', 'gif', 'pdf', 'svg', 'txt'))); // Extensions allowed if filter is 'allow'
 define("BANNED_EXTENSIONS", serialize(array('exe', 'html', 'js', 'php', 'msi', 'xhtml'))); // Extensions banned if filter is 'ban'
